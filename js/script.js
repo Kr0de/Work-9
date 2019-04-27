@@ -38,8 +38,7 @@ window.addEventListener("DOMContentLoaded", function(){
             }
         });
 
-
-        let deadLine = '2019-04-15';
+        let deadLine = '2019-05-15';
 
         function getTimeRemaining(){
             let t = Date.parse(deadLine) - Date.parse( new Date()),
@@ -69,9 +68,9 @@ window.addEventListener("DOMContentLoaded", function(){
                     hours.textContent = t.hours;
                     minutes.textContent = t.minutes;
                     seconds.textContent = t.seconds;
-                    if(hours.textContent.length < 2) hours.textContent = "0" + hours.textContent;
-                    if(minutes.textContent.length < 2) minutes.textContent = "0" + minutes.textContent;
-                    if(seconds.textContent.length < 2) seconds.textContent = "0" + seconds.textContent;
+                    if(hours.textContent.length < 2) hours.textContent = `0${hours.textContent}`;   
+                    if(minutes.textContent.length < 2) minutes.textContent = `0${minutes.textContent}`;
+                    if(seconds.textContent.length < 2) seconds.textContent = `0${seconds.textContent}`;
 
                     if(t.total <= 0){
                         clearInterval(timeInterval);
@@ -110,4 +109,116 @@ window.addEventListener("DOMContentLoaded", function(){
             this.classList.add("more-splash");
             document.body.style.overflow = "hidden";
         })
+
+
+    // Form
+        let message = {
+            loading: "Загрузка",
+            success: "Спасибо! Скоро мы с вами свяжемся!",
+            failure: "Что-то пошло не так..."
+        };
+
+        let form = document.querySelector('.main-form'),
+            input = form.getElementsByTagName('input'),
+            statusMessage = document.createElement('div');
+
+            statusMessage.classList.add('status');
+
+        form.addEventListener('submit', function(event){
+            event.preventDefault();
+            form.appendChild(statusMessage);
+
+            
+
+                let formData = new FormData(form),
+                obj = {};
+                formData.forEach(function(value, key){
+                    obj[key] = value;
+                });
+
+                let json = JSON.stringify(obj);
+                
+
+            function postData(data) {
+                return new Promise(function(resolve, reject) {
+
+                        let request = new XMLHttpRequest();
+                        request.open('POST', 'server.php');
+                        request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+
+                        request.addEventListener("readystatechange", function(){
+                                (request.readyState < 4) ? resolve():  
+                                (request.readyState === 4 && request.status == 200) ? resolve():
+                                reject();
+                            });
+                            request.send(data);
+                        });
+                        
+                }; //end Data
+
+                function clearInput(){
+                    for( let i = 0; i < input.length; i++){
+                        input[i].value = '';
+                        }
+                    } 
+
+
+                postData(formData)
+                    .then(()=> statusMessage.innerHTML = message.loading)
+                    .then(()=> statusMessage.innerHTML = message.success)
+                    .catch(()=> statusMessage.innerHTML = message.failure)
+                    .then(clearInput)
+         });
+
+
+         //Slider
+            let slideIndex = 1,
+                slides = document.querySelectorAll(".slider-item"),
+                prev = document.querySelector(".prev"),
+                next = document.querySelector(".next"),
+                dotsWrap = document.querySelector(".slider-dots"),
+                dots = document.querySelectorAll(".dot");
+
+                showSlides(slideIndex);
+
+                function showSlides(n){
+                if(n> slides.length){
+                     slideIndex = 1; 
+                    }
+                if(n < 1){
+                     slideIndex = slides.length;
+                     }
+
+                    slides.forEach((item) => item.style.display = "none");
+
+                    dots.forEach((item)=> item.classList.remove("dot-active"));
+
+                    slides[slideIndex - 1].style.display = "block";
+                    dots[slideIndex - 1].classList.add("dot-active");
+                }
+
+                function plusSlides(n){
+                    showSlides(slideIndex += n);
+                }
+
+                function currentSlides(n){
+                    showSlides(slideIndex = n);
+                }
+
+                prev.addEventListener('click', function(){
+                    plusSlides(-1);
+                });
+
+                next.addEventListener('click', function(){
+                    plusSlides(1);
+                });
+
+                dotsWrap.addEventListener("click", function(event){
+                    for(let i = 0; i < dots.length + 1; i++){
+                        if(event.target.classList.contains("dot") &&  event.target == dots[i - 1]){
+                           currentSlides(i); 
+                        }
+                    }
+                });
 });
